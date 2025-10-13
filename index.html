@@ -53,6 +53,27 @@
       color: var(--accent-dark);
     }
 
+    .title-button {
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .title-button:hover,
+    .title-button:focus-visible {
+      transform: translateY(-2px);
+      color: var(--accent);
+      outline: none;
+    }
+
+    .title-button:active {
+      transform: translateY(1px);
+    }
+
     .tagline {
       text-align: center;
       color: var(--text-light);
@@ -347,7 +368,7 @@
     <div class="bubble bubble--1" aria-hidden="true"></div>
     <div class="bubble bubble--2" aria-hidden="true"></div>
 
-    <h1>くにくいず</h1>
+    <h1><button type="button" class="title-button" id="homeButton">くにくいず</button></h1>
     <p class="tagline">国旗をみて、どこの国かあててみよう！</p>
 
     <section class="level-selector" id="levelSelector">
@@ -472,6 +493,7 @@
 
     const levelSelector = document.getElementById("levelSelector");
     const quizSection = document.getElementById("quiz");
+    const homeButton = document.getElementById("homeButton");
     const backButton = document.getElementById("backButton");
     const flagDisplay = document.getElementById("flagDisplay");
     const choicesContainer = document.getElementById("choices");
@@ -484,6 +506,8 @@
     const popupTitle = document.getElementById("popupTitle");
     const popupMessage = document.getElementById("popupMessage");
     const popupButton = document.getElementById("popupButton");
+
+    let popupHandler = null;
 
     const state = {
       levelIndex: null,
@@ -615,21 +639,28 @@
     }
 
     function showPopup({ type, title, message, icon, buttonLabel, onClose }) {
+      if (popupHandler) {
+        popupButton.removeEventListener("click", popupHandler);
+        popupHandler = null;
+      }
+
       popupIcon.textContent = icon;
       popupTitle.textContent = title;
       popupMessage.textContent = message;
       popupButton.textContent = buttonLabel;
       popup.classList.add("is-visible");
 
-      const handler = () => {
+      popupHandler = () => {
         popup.classList.remove("is-visible");
-        popupButton.removeEventListener("click", handler);
-        if (typeof onClose === "function") {
-          onClose();
+        popupButton.removeEventListener("click", popupHandler);
+        const closeAction = onClose;
+        popupHandler = null;
+        if (typeof closeAction === "function") {
+          closeAction();
         }
       };
 
-      popupButton.addEventListener("click", handler);
+      popupButton.addEventListener("click", popupHandler);
     }
 
     function showFinishPopup() {
@@ -647,12 +678,28 @@
         icon: perfect ? "🏆" : "⭐️",
         buttonLabel: "レベルえらびにもどる",
         onClose: () => {
-          quizSection.classList.remove("is-active");
-          levelSelector.style.display = "grid";
-          popup.classList.remove("is-visible");
+          returnToLevelSelector();
         }
       });
     }
+
+    function returnToLevelSelector() {
+      quizSection.classList.remove("is-active");
+      levelSelector.style.display = "grid";
+      if (popupHandler) {
+        popupButton.removeEventListener("click", popupHandler);
+        popupHandler = null;
+      }
+      popup.classList.remove("is-visible");
+      state.levelIndex = null;
+      state.questionOrder = [];
+      state.currentQuestion = 0;
+      state.mistakes = 0;
+      state.hasAnswered = false;
+      choicesContainer.innerHTML = "";
+    }
+
+    homeButton.addEventListener("click", returnToLevelSelector);
 
     levelSelector.querySelectorAll("button[data-level]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -661,10 +708,7 @@
       });
     });
 
-    backButton.addEventListener("click", () => {
-      quizSection.classList.remove("is-active");
-      levelSelector.style.display = "grid";
-    });
+    backButton.addEventListener("click", returnToLevelSelector);
   </script>
 </body>
 </html>
