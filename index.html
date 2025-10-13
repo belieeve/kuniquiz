@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>くにくいず - 国旗 4択ゲーム</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg-gradient: linear-gradient(135deg, #6ee7b7 0%, #3b82f6 100%);
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --accent: #3b82f6;
+      --accent-dark: #1d4ed8;
+      --correct: #22c55e;
+      --incorrect: #ef4444;
+      --text-dark: #0f172a;
+      --text-light: #475569;
+      --button-radius: 14px;
+      font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      color: var(--text-dark);
+    }
+
+    main {
+      width: min(640px, 100%);
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 32px clamp(16px, 4vw, 40px);
+      box-shadow: 0 20px 60px rgba(14, 30, 84, 0.18);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 42px);
+      text-align: center;
+      letter-spacing: 0.04em;
+      color: var(--accent-dark);
+    }
+
+    .tagline {
+      text-align: center;
+      color: var(--text-light);
+      margin: 8px 0 32px;
+      font-size: 16px;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 999px;
+      opacity: 0.25;
+      pointer-events: none;
+      filter: blur(0.5px);
+    }
+
+    .bubble--1 {
+      width: 160px;
+      height: 160px;
+      background: #fbbf24;
+      top: -40px;
+      left: -40px;
+    }
+
+    .bubble--2 {
+      width: 120px;
+      height: 120px;
+      background: #a855f7;
+      bottom: -50px;
+      right: 60px;
+    }
+
+    .level-selector {
+      display: grid;
+      gap: 20px;
+    }
+
+    .level-buttons {
+      display: grid;
+      gap: 16px;
+    }
+
+    .level-buttons button {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 18px clamp(16px, 3vw, 24px);
+      background: white;
+      border: 2px solid transparent;
+      border-radius: var(--button-radius);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .level-buttons button span {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-light);
+    }
+
+    .level-buttons button:hover,
+    .level-buttons button:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(59, 130, 246, 0.18);
+      border-color: rgba(59, 130, 246, 0.35);
+      outline: none;
+    }
+
+    .level-buttons button:active {
+      transform: translateY(1px);
+    }
+
+    .quiz {
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .quiz.is-active {
+      display: flex;
+    }
+
+    .status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      color: var(--text-light);
+    }
+
+    .flag-card {
+      background: white;
+      border-radius: 20px;
+      padding: clamp(32px, 6vw, 48px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.12);
+    }
+
+    .flag {
+      font-size: clamp(96px, 22vw, 128px);
+      line-height: 1;
+    }
+
+    .hint {
+      font-size: 15px;
+      color: var(--text-light);
+      background: rgba(59, 130, 246, 0.08);
+      border-radius: 999px;
+      padding: 6px 16px;
+    }
+
+    .choices {
+      display: grid;
+      gap: 14px;
+    }
+
+    .choices button {
+      padding: 16px;
+      font-size: clamp(18px, 4vw, 22px);
+      border-radius: var(--button-radius);
+      border: 0;
+      background: rgba(59, 130, 246, 0.08);
+      color: var(--text-dark);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .choices button:hover,
+    .choices button:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(59, 130, 246, 0.18);
+      background: rgba(59, 130, 246, 0.18);
+      outline: none;
+    }
+
+    .choices button:active {
+      transform: scale(0.98);
+    }
+
+    .choices button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.7;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .choices button.is-correct {
+      background: rgba(34, 197, 94, 0.18);
+      color: #166534;
+    }
+
+    .choices button.is-incorrect {
+      background: rgba(239, 68, 68, 0.18);
+      color: #991b1b;
+    }
+
+    .back-button {
+      align-self: flex-start;
+      border: none;
+      background: transparent;
+      color: var(--accent-dark);
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 0;
+    }
+
+    .back-button span {
+      font-size: 20px;
+    }
+
+    .popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 10;
+    }
+
+    .popup.is-visible {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .popup-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: clamp(28px, 6vw, 40px);
+      text-align: center;
+      max-width: 360px;
+      width: min(90%, 360px);
+      box-shadow: 0 20px 50px rgba(30, 64, 175, 0.25);
+      position: relative;
+    }
+
+    .popup-card h3 {
+      margin: 0 0 12px;
+      font-size: clamp(24px, 5vw, 32px);
+    }
+
+    .popup-card p {
+      margin: 0 0 20px;
+      color: var(--text-light);
+      font-size: 16px;
+    }
+
+    .popup-card .popup-icon {
+      font-size: clamp(48px, 12vw, 64px);
+      margin-bottom: 12px;
+    }
+
+    .popup button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 32px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .popup button:hover,
+    .popup button:focus-visible {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .popup button:active {
+      transform: scale(0.98);
+    }
+
+    .score {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .score-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(148, 163, 184, 0.3);
+      transition: background 0.2s ease;
+    }
+
+    .score-dot.is-correct {
+      background: rgba(34, 197, 94, 0.85);
+    }
+
+    .score-dot.is-incorrect {
+      background: rgba(239, 68, 68, 0.75);
+    }
+
+    footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(15, 23, 42, 0.48);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.001ms !important;
+        animation-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="bubble bubble--1" aria-hidden="true"></div>
+    <div class="bubble bubble--2" aria-hidden="true"></div>
+
+    <h1>くにくいず</h1>
+    <p class="tagline">国旗をみて、どこの国かあててみよう！</p>
+
+    <section class="level-selector" id="levelSelector">
+      <h2>レベルをえらんでスタート！</h2>
+      <div class="level-buttons">
+        <button type="button" data-level="0">
+          <strong>レベル1★</strong>
+          <span>日本でもおなじみの国旗がそろっているよ</span>
+        </button>
+        <button type="button" data-level="1">
+          <strong>レベル2★★</strong>
+          <span>ちょっとむずかしい国旗にもチャレンジ！</span>
+        </button>
+        <button type="button" data-level="2">
+          <strong>レベル3★★★</strong>
+          <span>世界じゅうの国旗マスターになれるかな？</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="quiz" id="quiz" aria-live="polite">
+      <button class="back-button" type="button" id="backButton"><span>←</span> レベルにもどる</button>
+
+      <div class="status">
+        <div id="levelName">レベル1</div>
+        <div class="score" id="scoreDots" aria-label="これまでの正解数"></div>
+        <div id="progress">1 / 10</div>
+      </div>
+
+      <div class="flag-card">
+        <div class="flag" id="flagDisplay" role="img" aria-label="国旗"></div>
+        <div class="hint" id="hintText">画面をみて国の名前をえらぼう！</div>
+      </div>
+
+      <div class="choices" id="choices"></div>
+    </section>
+
+    <footer>こたえは国旗をしっかり見てからタッチしてね！</footer>
+  </main>
+
+  <div class="popup" id="popup" role="dialog" aria-modal="true" aria-live="assertive">
+    <div class="popup-card">
+      <div class="popup-icon" id="popupIcon" aria-hidden="true"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMessage"></p>
+      <button type="button" id="popupButton">つぎへ</button>
+    </div>
+  </div>
+
+  <script>
+    const levels = [
+      {
+        name: "レベル1",
+        victories: 0,
+        description: "よくしっている国旗",
+        hint: "見たことがある国旗ばかり！毎回ちがう10問にチャレンジしよう",
+        countries: [
+          { name: "日本", flag: "🇯🇵" },
+          { name: "アメリカ合衆国", flag: "🇺🇸" },
+          { name: "フランス", flag: "🇫🇷" },
+          { name: "イギリス", flag: "🇬🇧" },
+          { name: "ドイツ", flag: "🇩🇪" },
+          { name: "イタリア", flag: "🇮🇹" },
+          { name: "カナダ", flag: "🇨🇦" },
+          { name: "中国", flag: "🇨🇳" },
+          { name: "ブラジル", flag: "🇧🇷" },
+          { name: "オーストラリア", flag: "🇦🇺" },
+          { name: "韓国", flag: "🇰🇷" },
+          { name: "スペイン", flag: "🇪🇸" },
+          { name: "インド", flag: "🇮🇳" },
+          { name: "メキシコ", flag: "🇲🇽" },
+          { name: "ロシア", flag: "🇷🇺" }
+        ]
+      },
+      {
+        name: "レベル2",
+        victories: 0,
+        description: "あこがれの国旗",
+        hint: "色や形のヒントをみつけよう。毎回10問えらばれるよ",
+        countries: [
+          { name: "スウェーデン", flag: "🇸🇪" },
+          { name: "ノルウェー", flag: "🇳🇴" },
+          { name: "デンマーク", flag: "🇩🇰" },
+          { name: "オランダ", flag: "🇳🇱" },
+          { name: "ベルギー", flag: "🇧🇪" },
+          { name: "ギリシャ", flag: "🇬🇷" },
+          { name: "トルコ", flag: "🇹🇷" },
+          { name: "タイ", flag: "🇹🇭" },
+          { name: "南アフリカ共和国", flag: "🇿🇦" },
+          { name: "アルゼンチン", flag: "🇦🇷" },
+          { name: "シンガポール", flag: "🇸🇬" },
+          { name: "ニュージーランド", flag: "🇳🇿" },
+          { name: "ポルトガル", flag: "🇵🇹" },
+          { name: "スイス", flag: "🇨🇭" },
+          { name: "ベトナム", flag: "🇻🇳" }
+        ]
+      },
+      {
+        name: "レベル3",
+        victories: 0,
+        description: "せかいの国旗",
+        hint: "めずらしい国旗のひみつを発見してみよう！",
+        countries: [
+          { name: "エジプト", flag: "🇪🇬" },
+          { name: "フィンランド", flag: "🇫🇮" },
+          { name: "チリ", flag: "🇨🇱" },
+          { name: "ナイジェリア", flag: "🇳🇬" },
+          { name: "ケニア", flag: "🇰🇪" },
+          { name: "フィリピン", flag: "🇵🇭" },
+          { name: "ハンガリー", flag: "🇭🇺" },
+          { name: "エストニア", flag: "🇪🇪" },
+          { name: "コロンビア", flag: "🇨🇴" },
+          { name: "ペルー", flag: "🇵🇪" },
+          { name: "クロアチア", flag: "🇭🇷" },
+          { name: "アイスランド", flag: "🇮🇸" },
+          { name: "カザフスタン", flag: "🇰🇿" },
+          { name: "ウルグアイ", flag: "🇺🇾" },
+          { name: "アゼルバイジャン", flag: "🇦🇿" }
+        ]
+      }
+    ];
+
+    const levelSelector = document.getElementById("levelSelector");
+    const quizSection = document.getElementById("quiz");
+    const backButton = document.getElementById("backButton");
+    const flagDisplay = document.getElementById("flagDisplay");
+    const choicesContainer = document.getElementById("choices");
+    const levelName = document.getElementById("levelName");
+    const progress = document.getElementById("progress");
+    const hintText = document.getElementById("hintText");
+    const scoreDots = document.getElementById("scoreDots");
+    const popup = document.getElementById("popup");
+    const popupIcon = document.getElementById("popupIcon");
+    const popupTitle = document.getElementById("popupTitle");
+    const popupMessage = document.getElementById("popupMessage");
+    const popupButton = document.getElementById("popupButton");
+
+    const state = {
+      levelIndex: null,
+      questionOrder: [],
+      currentQuestion: 0,
+      mistakes: 0,
+      hasAnswered: false
+    };
+
+    function shuffle(array) {
+      const result = [...array];
+      for (let i = result.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function buildScoreDots(count) {
+      scoreDots.innerHTML = "";
+      for (let i = 0; i < count; i += 1) {
+        const dot = document.createElement("span");
+        dot.classList.add("score-dot");
+        scoreDots.appendChild(dot);
+      }
+    }
+
+    function updateScoreDot(index, status) {
+      const dot = scoreDots.children[index];
+      if (!dot) return;
+      dot.classList.remove("is-correct", "is-incorrect");
+      dot.classList.add(status === "correct" ? "is-correct" : "is-incorrect");
+    }
+
+    function startLevel(levelIdx) {
+      state.levelIndex = levelIdx;
+      state.currentQuestion = 0;
+      state.mistakes = 0;
+      state.hasAnswered = false;
+
+      const level = levels[levelIdx];
+      const quizSize = Math.min(10, level.countries.length);
+      state.questionOrder = shuffle(level.countries).slice(0, quizSize);
+
+      levelSelector.style.display = "none";
+      quizSection.classList.add("is-active");
+      levelName.textContent = `${level.name} - ${level.description}`;
+      hintText.textContent = level.hint;
+      buildScoreDots(state.questionOrder.length);
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      state.hasAnswered = false;
+      const level = levels[state.levelIndex];
+      const question = state.questionOrder[state.currentQuestion];
+
+      flagDisplay.textContent = question.flag;
+      flagDisplay.setAttribute("aria-label", `${question.name}の国旗`);
+      progress.textContent = `${state.currentQuestion + 1} / ${state.questionOrder.length}`;
+
+      const choices = prepareChoices(question, level.countries);
+      renderChoices(choices, question);
+    }
+
+    function prepareChoices(question, pool) {
+      const wrongChoices = shuffle(pool.filter((item) => item.name !== question.name)).slice(0, 3);
+      return shuffle([...wrongChoices, question]);
+    }
+
+    function renderChoices(choices, question) {
+      choicesContainer.innerHTML = "";
+      choices.forEach((choice) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = choice.name;
+        button.addEventListener("click", () => handleChoice(button, choice, question));
+        choicesContainer.appendChild(button);
+      });
+    }
+
+    function handleChoice(button, choice, question) {
+      if (state.hasAnswered) return;
+      state.hasAnswered = true;
+      const buttons = Array.from(choicesContainer.querySelectorAll("button"));
+      buttons.forEach((btn) => {
+        btn.disabled = true;
+        if (btn.textContent === question.name) {
+          btn.classList.add("is-correct");
+        }
+      });
+
+      if (choice.name === question.name) {
+        updateScoreDot(state.currentQuestion, "correct");
+        showPopup({
+          type: "success",
+          title: "ピンポーン！正解！",
+          message: `${question.name}の国旗だったね！`,
+          icon: "🎉",
+          buttonLabel: state.currentQuestion === state.questionOrder.length - 1 ? "レベルクリア！" : "つぎのもんだいへ",
+          onClose: () => {
+            if (state.currentQuestion === state.questionOrder.length - 1) {
+              showFinishPopup();
+            } else {
+              state.currentQuestion += 1;
+              loadQuestion();
+            }
+          }
+        });
+      } else {
+        state.mistakes += 1;
+        updateScoreDot(state.currentQuestion, "incorrect");
+        button.classList.add("is-incorrect");
+        showPopup({
+          type: "error",
+          title: "ざんねん…",
+          message: "もう一度ちょうせんしてみよう！",
+          icon: "💡",
+          buttonLabel: "もういっかい",
+          onClose: () => {
+            state.hasAnswered = false;
+            buttons.forEach((btn) => {
+              btn.disabled = false;
+              btn.classList.remove("is-incorrect");
+            });
+          }
+        });
+      }
+    }
+
+    function showPopup({ type, title, message, icon, buttonLabel, onClose }) {
+      popupIcon.textContent = icon;
+      popupTitle.textContent = title;
+      popupMessage.textContent = message;
+      popupButton.textContent = buttonLabel;
+      popup.classList.add("is-visible");
+
+      const handler = () => {
+        popup.classList.remove("is-visible");
+        popupButton.removeEventListener("click", handler);
+        if (typeof onClose === "function") {
+          onClose();
+        }
+      };
+
+      popupButton.addEventListener("click", handler);
+    }
+
+    function showFinishPopup() {
+      const level = levels[state.levelIndex];
+      const total = state.questionOrder.length;
+      const missed = state.mistakes;
+      const perfect = missed === 0;
+
+      showPopup({
+        type: "finish",
+        title: perfect ? "パーフェクト！" : "やったね！",
+        message: perfect
+          ? `${level.name}をぜんぶ正解したよ！すごい！`
+          : `${level.name}をクリア！ちがったところも覚えてみようね。`,
+        icon: perfect ? "🏆" : "⭐️",
+        buttonLabel: "レベルえらびにもどる",
+        onClose: () => {
+          quizSection.classList.remove("is-active");
+          levelSelector.style.display = "grid";
+          popup.classList.remove("is-visible");
+        }
+      });
+    }
+
+    levelSelector.querySelectorAll("button[data-level]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const levelIdx = Number(button.dataset.level);
+        startLevel(levelIdx);
+      });
+    });
+
+    backButton.addEventListener("click", () => {
+      quizSection.classList.remove("is-active");
+      levelSelector.style.display = "grid";
+    });
+  </script>
+</body>
+</html>
