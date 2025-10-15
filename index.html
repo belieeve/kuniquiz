@@ -457,20 +457,7 @@
 
     <section class="level-selector" id="levelSelector">
       <h2>レベルをえらんでスタート！</h2>
-      <div class="level-buttons">
-        <button type="button" data-level="0">
-          <strong>レベル1★</strong>
-          <span>日本でもおなじみの国旗がそろっているよ</span>
-        </button>
-        <button type="button" data-level="1">
-          <strong>レベル2★★</strong>
-          <span>ちょっとむずかしい国旗にもチャレンジ！</span>
-        </button>
-        <button type="button" data-level="2">
-          <strong>レベル3★★★</strong>
-          <span>世界じゅうの国旗マスターになれるかな？</span>
-        </button>
-      </div>
+      <div class="level-buttons" id="levelButtons"></div>
     </section>
 
     <section class="quiz" id="quiz" aria-live="polite">
@@ -490,7 +477,7 @@
       <div class="choices" id="choices"></div>
     </section>
 
-    <footer>こたえは国旗をしっかり見てからタッチしてね！<br>国旗の情報は <a href="https://freesozai.jp/itemList.php?category=nation_flag&amp;page=index&amp;type=sozai" target="_blank" rel="noopener noreferrer">フリー素材ダウンロードサイト</a> を参考にしています。</footer>
+    <footer>こたえは国旗をしっかり見てからタッチしてね！<br>国旗の情報は <a href="https://freesozai.jp/itemList.php?category=nation_flag&amp;page=index&amp;type=sozai" target="_blank" rel="noopener noreferrer">フリー素材ダウンロードサイト</a> と <a href="https://frame-illust.com/?cat=279" target="_blank" rel="noopener noreferrer">Frame illust 国旗素材</a>、<a href="https://www.asahi-net.or.jp/~yq3t-hruc/flag_J_ALL.html" target="_blank" rel="noopener noreferrer">世界の国旗（朝日ネット）</a> を参考にしています。</footer>
   </main>
 
   <div class="popup" id="popup" role="dialog" aria-modal="true" aria-live="assertive">
@@ -508,6 +495,7 @@
         name: "レベル1",
         victories: 0,
         description: "よくしっている国旗",
+        intro: "日本でもおなじみの国旗がそろっているよ",
         hint: "見たことがある国旗ばかり！毎回ちがう10問にチャレンジしよう",
         countries: [
           { name: "にほん", flag: "🇯🇵" },
@@ -531,6 +519,7 @@
         name: "レベル2",
         victories: 0,
         description: "あこがれの国旗",
+        intro: "ちょっとむずかしい国旗にもチャレンジ！",
         hint: "色や形のヒントをみつけよう。毎回10問えらばれるよ",
         countries: [
           { name: "スウェーデン", flag: "🇸🇪" },
@@ -554,6 +543,7 @@
         name: "レベル3",
         victories: 0,
         description: "せかいの国旗",
+        intro: "世界じゅうの国旗マスターになれるかな？",
         hint: "めずらしい国旗のひみつを発見してみよう！",
         countries: [
           { name: "エジプト", flag: "🇪🇬" },
@@ -571,6 +561,54 @@
           { name: "カザフスタン", flag: "🇰🇿" },
           { name: "ウルグアイ", flag: "🇺🇾" },
           { name: "アゼルバイジャン", flag: "🇦🇿" }
+        ]
+      },
+      {
+        name: "レベル4",
+        victories: 0,
+        description: "チャレンジの国旗",
+        intro: "まだ見たことのない国旗もおぼえてみよう",
+        hint: "色やもように注目して、まだしらない国にもチャレンジしよう",
+        countries: [
+          { name: "モンゴル", flag: "🇲🇳" },
+          { name: "ラトビア", flag: "🇱🇻" },
+          { name: "リトアニア", flag: "🇱🇹" },
+          { name: "スリランカ", flag: "🇱🇰" },
+          { name: "ブルガリア", flag: "🇧🇬" },
+          { name: "ルーマニア", flag: "🇷🇴" },
+          { name: "マレーシア", flag: "🇲🇾" },
+          { name: "インドネシア", flag: "🇮🇩" },
+          { name: "パキスタン", flag: "🇵🇰" },
+          { name: "サウジアラビア", flag: "🇸🇦" },
+          { name: "エチオピア", flag: "🇪🇹" },
+          { name: "タンザニア", flag: "🇹🇿" },
+          { name: "カタール", flag: "🇶🇦" },
+          { name: "ラオス", flag: "🇱🇦" },
+          { name: "パプアニューギニア", flag: "🇵🇬" }
+        ]
+      },
+      {
+        name: "レベル5",
+        victories: 0,
+        description: "レアな国旗",
+        intro: "せかいのとてもレアな国旗にチャレンジ！",
+        hint: "形やシンボルをよく見て、めずらしい国旗を覚えてみよう",
+        countries: [
+          { name: "ネパール", flag: "🇳🇵" },
+          { name: "ブータン", flag: "🇧🇹" },
+          { name: "キルギス", flag: "🇰🇬" },
+          { name: "セントルシア", flag: "🇱🇨" },
+          { name: "セーシェル", flag: "🇸🇨" },
+          { name: "エスワティニ", flag: "🇸🇿" },
+          { name: "モザンビーク", flag: "🇲🇿" },
+          { name: "ソロモンしょとう", flag: "🇸🇧" },
+          { name: "マラウイ", flag: "🇲🇼" },
+          { name: "ドミニカこく", flag: "🇩🇲" },
+          { name: "カーボベルデ", flag: "🇨🇻" },
+          { name: "グレナダ", flag: "🇬🇩" },
+          { name: "サモア", flag: "🇼🇸" },
+          { name: "アンゴラ", flag: "🇦🇴" },
+          { name: "ベリーズ", flag: "🇧🇿" }
         ]
       }
     ];
@@ -590,6 +628,7 @@
     const popupTitle = document.getElementById("popupTitle");
     const popupMessage = document.getElementById("popupMessage");
     const popupButton = document.getElementById("popupButton");
+    const levelButtons = document.getElementById("levelButtons");
 
     let popupHandler = null;
 
@@ -767,6 +806,28 @@
       });
     }
 
+    function renderLevelButtons() {
+      levelButtons.innerHTML = "";
+      levels.forEach((level, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.level = String(index);
+
+        const title = document.createElement("strong");
+        title.textContent = `${level.name}${"★".repeat(index + 1)}`;
+
+        const caption = document.createElement("span");
+        caption.textContent = level.intro ?? level.hint;
+
+        button.appendChild(title);
+        button.appendChild(caption);
+        button.addEventListener("click", () => {
+          startLevel(index);
+        });
+        levelButtons.appendChild(button);
+      });
+    }
+
     function returnToLevelSelector() {
       quizSection.classList.remove("is-active");
       levelSelector.style.display = "grid";
@@ -785,12 +846,7 @@
 
     homeButton.addEventListener("click", returnToLevelSelector);
 
-    levelSelector.querySelectorAll("button[data-level]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const levelIdx = Number(button.dataset.level);
-        startLevel(levelIdx);
-      });
-    });
+    renderLevelButtons();
 
     backButton.addEventListener("click", returnToLevelSelector);
   </script>
