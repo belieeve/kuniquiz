@@ -182,6 +182,11 @@
     .flag {
       font-size: clamp(96px, 22vw, 128px);
       line-height: 1;
+      width: clamp(160px, 30vw, 240px);
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .hint {
@@ -410,6 +415,7 @@
 
       .flag {
         font-size: clamp(72px, 24vw, 100px);
+        width: clamp(120px, 40vw, 180px);
       }
 
       .choices {
@@ -470,7 +476,7 @@
       </div>
 
       <div class="flag-card">
-        <div class="flag" id="flagDisplay" role="img" aria-label="国旗"></div>
+        <img class="flag" id="flagDisplay" alt="国旗" />
         <div class="hint" id="hintText">画面をみて国の名前をえらぼう！</div>
       </div>
 
@@ -640,6 +646,19 @@
       hasAnswered: false
     };
 
+    function getFlagImageUrl(flagEmoji) {
+      // 絵文字から国コードを取得
+      const codePoints = [...flagEmoji].map(char => char.codePointAt(0));
+      if (codePoints.length === 2) {
+        const countryCode = String.fromCharCode(
+          ...[codePoints[0] - 0x1F1E6 + 65, codePoints[1] - 0x1F1E6 + 65]
+        ).toLowerCase();
+        // flagcdn.comを使用（高品質なSVG画像を提供）
+        return `https://flagcdn.com/w320/${countryCode}.png`;
+      }
+      return "";
+    }
+
     function shuffle(array) {
       const result = [...array];
       for (let i = result.length - 1; i > 0; i -= 1) {
@@ -688,8 +707,9 @@
       const level = levels[state.levelIndex];
       const question = state.questionOrder[state.currentQuestion];
 
-      flagDisplay.textContent = question.flag;
-      flagDisplay.setAttribute("aria-label", `${question.name}の国旗`);
+      const flagUrl = getFlagImageUrl(question.flag);
+      flagDisplay.src = flagUrl;
+      flagDisplay.alt = `${question.name}の国旗`;
       progress.textContent = `${state.currentQuestion + 1} / ${state.questionOrder.length}`;
 
       const choices = prepareChoices(question, level.countries);
